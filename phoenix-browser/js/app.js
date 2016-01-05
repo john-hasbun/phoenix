@@ -149,6 +149,13 @@ window.addEventListener('DOMContentLoaded', function() {
       currentTab.getCanGoForward().then(function(canGoForward) {
         goforwardButton.disabled = !canGoForward;
       });
+      
+      var body = currentTab.children;
+
+      for(var i=1; i <= body.length; i++){
+        console.log(body.item(i).attributes);
+      }
+    
     }
   });
 
