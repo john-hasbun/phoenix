@@ -14,6 +14,7 @@ window.addEventListener('DOMContentLoaded', function() {
   var goforwardButton = document.getElementById('goforward-button');
   var urlInput = document.getElementById('url-input');
   var urlButton = document.getElementById('url-button');
+  var domButton = document.getElementById('domTree-button');
   var domarray = [];
   var domint = 0;
 
@@ -117,6 +118,10 @@ window.addEventListener('DOMContentLoaded', function() {
           currentTab.goForward();
         }
         break;
+      case domButton:
+        if (currentTab) {
+          printDOMTree(frameContainer, null);
+        }
     }
   });
 
