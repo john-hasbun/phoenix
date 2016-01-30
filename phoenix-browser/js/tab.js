@@ -11,6 +11,7 @@
    */
   function createIFrame (url) {
     var iframe = document.createElement('iframe');
+    iframe.setAttribute('id', 'browser-container');
     iframe.setAttribute('mozbrowser', true);
     iframe.setAttribute('mozallowfullscreen', true);
     iframe.setAttribute('remote', true);

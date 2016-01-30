@@ -9,11 +9,15 @@ window.addEventListener('DOMContentLoaded', function() {
   'use strict';
 
   var frameContainer = document.getElementById('frame-container');
+  var browserContainer;
 
   var gobackButton = document.getElementById('goback-button');
   var goforwardButton = document.getElementById('goforward-button');
   var urlInput = document.getElementById('url-input');
   var urlButton = document.getElementById('url-button');
+  var domButton = document.getElementById('domTree-button');
+  var domarray = [];
+  var domint = 0;
 
   /**
    * The current displaying Tab
@@ -93,6 +97,7 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!currentTab) {
       currentTab = new Tab(url);
       frameContainer.appendChild(currentTab.iframe);
+      browserContainer = frameContainer.getElementsByTagName("iframe")[0];
     } else if (currentUrlInput === currentTab.title) {
       currentTab.reload();
     } else {
@@ -115,6 +120,10 @@ window.addEventListener('DOMContentLoaded', function() {
           currentTab.goForward();
         }
         break;
+      case domButton:
+        if (currentTab) {
+          printDOMTree(browserContainer.contentWindow.document, null);
+        }
     }
   });
 
@@ -152,4 +161,96 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  /**
+   * http://www.permadi.com/tutorial/domTree/ - Citation
+   * @param targetDocument
+   * @param currentElement
+   * @param depth
+   */
+  function traverseDOMTree(targetDocument, currentElement, depth) {
+    if (currentElement) {
+      var j;
+      var tagName = currentElement.tagName;
+      // Prints the node tagName, such as <A>, <IMG>, etc
+      // &lt < - &gt >
+      if (tagName) {
+        domarray[domint++] = "&lt;" + currentElement.tagName + "&gt;";
+        if (currentElement.id) {
+          targetDocument.writeln("Tag: " + "&lt;" + currentElement.tagName + "&gt;" + " Id: " + currentElement.id);
+        } else {
+          targetDocument.writeln("Tag: " + "&lt;" + currentElement.tagName + "&gt;" + " Id: " + "No Id");
+        }
+      } else {
+        targetDocument.writeln(currentElement.nodeName);
+      }
+
+      // Traverse the tree
+      var i = 0;
+      var currentElementChild = currentElement.childNodes[i];
+      while (currentElementChild) {
+        // Formatting code (indent the tree so it looks nice on the screen)
+        targetDocument.write("<BR>\n");
+        for (j = 0; j < depth; j++) {
+          // &#166 is just a vertical line
+          // &nbsp - non-breaking space
+          targetDocument.write("&nbsp;&nbsp;&#166");
+        }
+        targetDocument.writeln("<BR>");
+        for (j = 0; j < depth; j++) {
+          targetDocument.write("&nbsp;&nbsp;&#166");
+        }
+        if (tagName)
+          targetDocument.write("--");
+
+        // Recursively traverse the tree structure of the child node
+        traverseDOMTree(targetDocument, currentElementChild, depth + 1);
+        i++;
+        currentElementChild = currentElement.childNodes[i];
+      }
+      // The remaining code is mostly for formatting the tree
+      targetDocument.writeln("<BR>");
+      for (j = 0; j < depth - 1; j++) {
+        targetDocument.write("&nbsp;&nbsp;&#166");
+      }
+      targetDocument.writeln("&nbsp;&nbsp;");
+    }
+    if (tagName) {
+      domarray[domint++] = "&lt;/" + currentElement.tagName + "&gt;";
+      targetDocument.writeln("&lt;/" + tagName + "&gt;");
+    }
+  }
+
+  /**
+   * This function accepts a DOM element as parameter and prints
+   * out the DOM tree structure of the element.
+   * @param domElement DOM element that need to be pretty printed.
+   * @param destinationWindow Where to print DOM Tree?
+   */
+
+  function printDOMTree(domElement, destinationWindow) {
+    // Use destination window to print the tree.  If destinationWIndow is
+    // not specified, create a new window and print the tree into that window
+    var outputWindow = destinationWindow;
+    if (!outputWindow)
+      outputWindow = window.open();
+
+    // Make a valid html page
+    outputWindow.document.open("text/html", "replace");
+    outputWindow.document.write("<HTML><HEAD><h1>DOM Tree</h1><TITLE>DOM Tree</TITLE></HEAD><BODY>\n");
+    outputWindow.document.write("<CODE>\n");
+    // Print the tree
+    traverseDOMTree(outputWindow.document, domElement, 1);
+    outputWindow.document.write("<BR><BR>");
+    // Print the array
+    outputWindow.document.write("Stored tags (in order): " + domarray.toString());
+    outputWindow.document.write("<BR><BR>");
+    outputWindow.document.write("</CODE>\n");
+    outputWindow.document.write("</BODY></HTML>\n");
+
+    // Here we must close the document object, otherwise Mozilla browsers
+    // might keep showing "loading in progress" state.
+    outputWindow.document.close();
+  }
+
+  printDOMTree(document);
 });
